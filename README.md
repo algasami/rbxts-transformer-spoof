@@ -14,14 +14,12 @@ Both of them must be literals, e.g. `"this is a literal"`, `665`.
 
 ```json
 {
-    compileOptions: {
-        ...,
-        plugins: [
-            ...,
-            {
-                transform: "rbxts-transformer-spoof"
-            }
-        ]
-    }
+  "compileOptions": {
+    "plugins": [
+      {
+        "transform": "rbxts-transformer-spoof"
+      }
+    ]
+  }
 }
 ```
