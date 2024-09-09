@@ -1,4 +1,4 @@
-import ts, { isStringLiteral } from "typescript";
+import ts from "typescript";
 
 export type TransformerConfig = {
   verbose: boolean;
@@ -33,71 +33,97 @@ export class TransformerContextRetainer {
     );
   }
 
+  private createSpoofExpression(str: string): ts.CallExpression {
+    const randos = [...str].map((_) => Math.round(Math.random() * 500 - 250));
+    const charoffsets = [...str]
+      .map((ch, i) => ch.charCodeAt(0) + randos[i])
+      .map((v) => {
+        return this.factory.createNumericLiteral(v);
+      });
+
+    const mapper = randos.map((v) => this.factory.createNumericLiteral(v));
+    return this.context.factory.createCallExpression(
+      this.context.factory.createPropertyAccessExpression(
+        this.context.factory.createIdentifier("string"),
+        this.context.factory.createIdentifier("char")
+      ),
+      undefined,
+      [
+        this.factory.createSpreadElement(
+          this.factory.createCallExpression(
+            this.factory.createPropertyAccessExpression(
+              this.factory.createArrayLiteralExpression(charoffsets, false),
+              this.factory.createIdentifier("map")
+            ),
+            undefined,
+            [
+              this.factory.createArrowFunction(
+                undefined,
+                undefined,
+                [
+                  this.factory.createParameterDeclaration(
+                    undefined,
+                    undefined,
+                    this.factory.createIdentifier("x"),
+                    undefined,
+                    undefined,
+                    undefined
+                  ),
+                  this.factory.createParameterDeclaration(
+                    undefined,
+                    undefined,
+                    this.factory.createIdentifier("i"),
+                    undefined,
+                    undefined,
+                    undefined
+                  ),
+                ],
+                undefined,
+                this.factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
+                this.factory.createBlock(
+                  [
+                    this.factory.createReturnStatement(
+                      this.factory.createBinaryExpression(
+                        this.factory.createIdentifier("x"),
+                        this.factory.createToken(ts.SyntaxKind.MinusToken),
+                        this.factory.createElementAccessExpression(
+                          this.factory.createArrayLiteralExpression(
+                            mapper,
+                            false
+                          ),
+                          this.factory.createIdentifier("i")
+                        )
+                      )
+                    ),
+                  ],
+                  true
+                )
+              ),
+            ]
+          )
+        ),
+      ]
+    );
+  }
+
   private transformCallExpression(node: ts.CallExpression) {
     const identifier = node.expression;
     if (!ts.isIdentifier(identifier)) return this.visitNode(node);
     const text = identifier.escapedText;
     if (text === "$spoof") {
       const str = node.arguments[0]; // must be string literal for compile time deduction
-      const offset = node.arguments[1]; // must be a numeric literal
-      if (
-        str === undefined ||
-        offset === undefined ||
-        ts.isStringLiteral(str) === false ||
-        ts.isNumericLiteral(offset) === false
-      ) {
+      if (str === undefined || ts.isStringLiteral(str) === false) {
+        if (str === undefined && this.config.verbose) {
+          console.log("[rbxts-transformer-spoof] $spoof requires a parameter!");
+        }
+        if (ts.isStringLiteral(str) === false && this.config.verbose) {
+          console.log(
+            "[rbxts-transformer-spoof] $spoof requires a string literal!"
+          );
+        }
         return this.visitNode(node);
       }
-
-      const charoffsets = [...str.text]
-        .map((ch) => ch.charCodeAt(0) + Number(offset.text))
-        .map((v) => {
-          return this.factory.createNumericLiteral(v);
-        });
-
-      return this.context.factory.createCallExpression(
-        this.context.factory.createPropertyAccessExpression(
-          this.context.factory.createIdentifier("string"),
-          this.context.factory.createIdentifier("char")
-        ),
-        undefined,
-        [
-          this.factory.createSpreadElement(
-            this.factory.createCallExpression(
-              this.factory.createPropertyAccessExpression(
-                this.factory.createArrayLiteralExpression(charoffsets, false),
-                this.factory.createIdentifier("map")
-              ),
-              undefined,
-              [
-                this.factory.createArrowFunction(
-                  undefined,
-                  undefined,
-                  [
-                    this.factory.createParameterDeclaration(
-                      undefined,
-                      undefined,
-                      this.factory.createIdentifier("x"),
-                      undefined,
-                      undefined,
-                      undefined
-                    ),
-                  ],
-                  undefined,
-                  this.factory.createToken(
-                    ts.SyntaxKind.EqualsGreaterThanToken
-                  ),
-                  this.factory.createBinaryExpression(
-                    this.factory.createIdentifier("x"),
-                    this.factory.createToken(ts.SyntaxKind.MinusToken),
-                    offset
-                  )
-                ),
-              ]
-            )
-          ),
-        ]
-      );
+      return this.createSpoofExpression(str.text);
     }
     return this.visitNode(node);
   }

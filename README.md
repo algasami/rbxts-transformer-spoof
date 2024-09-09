@@ -5,10 +5,10 @@ Last updated typescript version: `5.5.4`
 ## Usage
 
 ```
-$spoof(string literal, numeric literal)
+$spoof(string literal)
 ```
 
-Both of them must be literals, e.g. `"this is a literal"`, `665`.
+must be literals, e.g. `"this is a literal"`.
 
 `tsconfig.json`
 
@@ -17,7 +17,8 @@ Both of them must be literals, e.g. `"this is a literal"`, `665`.
   "compileOptions": {
     "plugins": [
       {
-        "transform": "rbxts-transformer-spoof"
+        "transform": "rbxts-transformer-spoof",
+        "verbose": true
       }
     ]
   }

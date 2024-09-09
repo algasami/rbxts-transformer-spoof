@@ -1,3 +1,3 @@
 declare module "rbxts-transformer-spoof";
 
-export function $spoof(str: string, offset: number): string;
+export function $spoof(str: string): string;
