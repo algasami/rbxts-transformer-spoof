@@ -35,13 +35,20 @@ export class TransformerContextRetainer {
 
   private createSpoofExpression(str: string): ts.CallExpression {
     const randos = [...str].map((_) => Math.round(Math.random() * 500 - 250));
+    const create_num = (v: number) => {
+      if (v >= 0) {
+        return this.factory.createNumericLiteral(v);
+      }
+      return this.factory.createPrefixUnaryExpression(
+        ts.SyntaxKind.MinusToken,
+        this.factory.createNumericLiteral(-v)
+      );
+    };
     const charoffsets = [...str]
       .map((ch, i) => ch.charCodeAt(0) + randos[i])
-      .map((v) => {
-        return this.factory.createNumericLiteral(v);
-      });
+      .map(create_num);
 
-    const mapper = randos.map((v) => this.factory.createNumericLiteral(v));
+    const mapper = randos.map(create_num);
     return this.context.factory.createCallExpression(
       this.context.factory.createPropertyAccessExpression(
         this.context.factory.createIdentifier("string"),

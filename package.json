@@ -1,6 +1,6 @@
 {
   "name": "rbxts-transformer-spoof",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Roblox-TS String Spoofing Transformer",
   "main": "out/index.js",
   "scripts": {
