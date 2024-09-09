@@ -1,0 +1,31 @@
+{
+  "name": "rbxts-transformer-spoof",
+  "version": "1.0.0",
+  "description": "Roblox-TS String Spoofing Transformer",
+  "main": "out/index.js",
+  "scripts": {
+    "prepare": "pnpm run build",
+    "start": "tsc --watch",
+    "watch": "tsc --watch",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "algasami",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.5.4",
+    "@typescript-eslint/eslint-plugin": "^8.4.0",
+    "@typescript-eslint/parser": "^8.4.0",
+    "eslint": "^9.10.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "prettier": "^3.3.3",
+    "ts-expose-internals": "^5.5.4",
+    "typescript": "^5.5.4"
+  },
+  "types": "index.d.ts",
+  "files": [
+    "out",
+    "index.d.ts"
+  ]
+}

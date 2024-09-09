@@ -1,0 +1,6 @@
+/out
+/test/out
+/test/node_module
+/node_module
+node_modules
+/test/include
