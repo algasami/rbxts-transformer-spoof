@@ -25,7 +25,10 @@
 		"tsBuildInfoFile": "out/tsconfig.tsbuildinfo",
 		"plugins": [
 			{
-				"transform": "rbxts-transformer-spoof"
+				"transform": "rbxts-transformer-spoof",
+				"verbose": true,
+
+				"spoof_enum": true
 			}
 		]
 	}

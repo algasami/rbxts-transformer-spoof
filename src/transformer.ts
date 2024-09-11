@@ -1,11 +1,14 @@
+import { randomUUID } from "crypto";
 import ts from "typescript";
 
 export type TransformerConfig = {
   verbose: boolean;
+  spoof_enum: boolean;
 };
 
 const defaultConfig: TransformerConfig = {
   verbose: true,
+  spoof_enum: true,
 };
 
 export class TransformerContextRetainer {
@@ -131,6 +134,9 @@ export class TransformerContextRetainer {
         return this.visitNode(node);
       }
       return this.createSpoofExpression(str.text);
+    } else if (text === "$uuid") {
+      const compile_time_guid = randomUUID();
+      return this.factory.createStringLiteral(compile_time_guid);
     }
     return this.visitNode(node);
   }
@@ -151,19 +157,50 @@ export class TransformerContextRetainer {
   private transformNode(node: ts.Node): ts.Node | ts.Node[] {
     if (ts.isCallExpression(node)) {
       return this.transformCallExpression(node);
+    } else if (ts.isEnumDeclaration(node) && this.config.spoof_enum) {
+      return this.transformEnumDeclaration(node);
     }
 
+    return this.visitNode(node);
+  }
+
+  private transformEnumDeclaration(node: ts.EnumDeclaration) {
+    if (node.name.escapedText.toString().endsWith("_spoof")) {
+      if (this.config.verbose) {
+        console.log(
+          "[rbxts-transformer-spoof] Spoofing enum " +
+            node.name.escapedText +
+            " in file " +
+            node.getSourceFile().fileName
+        );
+      }
+      const spoofedMembers = node.members.map((member) => {
+        const name = member.name;
+        if (!ts.isIdentifier(name)) return member;
+        const uuid = randomUUID();
+        return this.factory.createEnumMember(
+          name,
+          this.factory.createStringLiteral(uuid)
+        );
+      });
+      return this.factory.updateEnumDeclaration(
+        node,
+        node.modifiers,
+        node.name,
+        spoofedMembers
+      );
+    }
     return this.visitNode(node);
   }
 
   private transformStatements(statementsIn: ts.NodeArray<ts.Statement>) {
     const statementsOut: Array<ts.Statement> = [];
     statementsIn.forEach((oldStatement) => {
-      const output = this.visitNode(oldStatement);
+      const output = this.transformNode(oldStatement);
       if (Array.isArray(output)) {
-        statementsOut.push(...output);
+        statementsOut.push(...(output as ts.Statement[]));
       } else {
-        statementsOut.push(output);
+        statementsOut.push(output as ts.Statement);
       }
     });
     return statementsOut;
